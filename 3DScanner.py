@@ -16,7 +16,9 @@ def StartUp():
 
 	ser = serial.Serial('/dev/cu.usbmodem1411', 9600, timeout=1)
 	ser.close()
+	time.sleep(1)
 	ser.open()
+
 
 	return ser
 
@@ -24,8 +26,8 @@ def ReadArduino(ser):
 	"""
 	Reads Arduino inputs and converts them to a usable form
 	"""
-	s = ser.readline()
-
+	s = ser.read(15)
+	print s
 	
 
 	if s is not None and len(s) > 0:
@@ -102,15 +104,29 @@ def Update3DPlot(graph, x,y,z, xarray, yarray, zarray):
 	"""
 	Updates the 3D plot based on the continual readings from Arduino.
 	"""
+	if len(xarray) < 180*180:
+		xarray.append(x)
+	else:
+		xarray = xarray[1:]
+		xarray.append(x)
 
-	xarray.append(x)
-	yarray.append(y)
-	zarray.append(z)
+	if len(yarray) < 180*180:
+		yarray.append(y)
+	else:
+		yarray = yarray[1:]
+		yarray.append(y)
 
-	graph.scatter(xarray, yarray, zarray, c='g', marker='o')
+	if len(zarray) < 180*180:
+		zarray.append(z)
+	else:
+		zarray = zarray[1:]
+		zarray.append(z)
 
-	plt.draw()
-	plt.pause(.01)
+ 	if len(xarray) % 180 == 0:
+		graph.scatter(xarray, yarray, zarray, c='g', marker='o')
+
+		plt.draw()
+		plt.pause(.01)
 
 
 def Plot2DCoordinates():
@@ -121,21 +137,31 @@ def Plot2DCoordinates():
 	plt.ion()
 	fig = plt.figure()
 
-	plt.scatter(5, 5, c = 'g', alpha = 0.5)
+	plt.scatter(0, 0, c = 'g', alpha = 0.5)
 	plt.show()
 
 def Update2DPlot(x, y, xarray, yarray):
 	"""
 	Updates the 2D plot based on the continual readings from Arduino.
 	"""
+	if len(xarray) < 180*2:
+		xarray.append(x)
+	else:
+		xarray = xarray[1:]
+		xarray.append(x)
 
-	xarray.append(x)
-	yarray.append(y)
+	if len(yarray) < 180*2:
+		yarray.append(y)
+	else:
+		yarray = yarray[1:]
+		yarray.append(y)	
 
-	plt.scatter(xarray, yarray, c='g', alpha=.5)
+	if len(xarray) % 180 == 0:	
 
-	plt.draw()
-	plt.pause(.01)
+		plt.scatter(xarray, yarray, c='g', alpha=.5)
+
+		plt.draw()
+		plt.pause(.01)
 
 
 
@@ -151,23 +177,18 @@ if __name__ == "__main__":
 	elif dim == '2d':
 		Plot2DCoordinates()	
 
-	# xcounter = 0
-	# ycounter = 0
-	# zcounter = 0
-	
 
 	xarray = []
 	yarray = []
 	zarray = []
 
 	ser = StartUp()
+	print ser
 
 	while True:
 
 		if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
-			line = raw_input()
-			break
-		
+			break		
 
 		datapoint = ReadArduino(ser)
 
@@ -180,13 +201,7 @@ if __name__ == "__main__":
 			elif dim == '2d':	
 				coordinates = Polar2Cartesian(datapoint[0], datapoint[1])
 				Update2DPlot(coordinates[0], coordinates[1], xarray, yarray)
-				# Update2DPlot(xcounter, ycounter, xarray, yarray)
-
-
-		# xcounter += 1
-		# ycounter += 1
-		# zcounter += 1
-
+	ser.close()
 
 
 
