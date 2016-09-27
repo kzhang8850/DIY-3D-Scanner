@@ -45,6 +45,7 @@ void loop() {
       phi = phi_lower;
       pan.write(phi);
       start = false;
+      started = false;
     }
     delay(100);
     sensorValue = analogRead(analogInPin);
@@ -53,6 +54,19 @@ void loop() {
     Serial.println(String(dist) + ", " + theta + ", " + phi);
     theta = theta + delta;
   }
+}
+
+void capture2d(){
+  tilt.write((theta_upper + theta_lower)/2);
+  for(phi = phi_lower; phi < phi_upper; phi++){
+    pan.write(phi);
+    delay(100);
+    sensorValue = analogRead(analogInPin);
+    dist = 642.17*pow(sensorValue, -1.295);
+    Serial.println(String(dist) + ", " + phi);
+  }
+  phi = phi_lower;
+  pan.write(phi);
 }
 
 void serialEvent(){
@@ -66,5 +80,8 @@ void serialEvent(){
   }
   else if(input == "pause" && started == true){
     start = !start;
+  }
+  else if(input == "twodimensions"){
+    capture2d();
   }
 }
