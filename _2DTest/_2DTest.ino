@@ -24,4 +24,5 @@ void loop() {
     
   }
   counter++;
+  delay(100);
 }

@@ -18,6 +18,8 @@ def StartUp():
 	ser.close()
 	time.sleep(1)
 	ser.open()
+	print ser.isOpen()
+
 
 
 	return ser
@@ -26,7 +28,7 @@ def ReadArduino(ser):
 	"""
 	Reads Arduino inputs and converts them to a usable form
 	"""
-	s = ser.read(15)
+	s = ser.readline()
 	print s
 	
 
@@ -201,7 +203,9 @@ if __name__ == "__main__":
 			elif dim == '2d':	
 				coordinates = Polar2Cartesian(datapoint[0], datapoint[1])
 				Update2DPlot(coordinates[0], coordinates[1], xarray, yarray)
+	print ser.isOpen()
 	ser.close()
+	print ser.isOpen()
 
 
 
