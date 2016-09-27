@@ -185,7 +185,7 @@ if __name__ == "__main__":
 	ser = StartUp()
 	print ser
 	time.sleep(2)
-	ser.write('start')
+	ser.write('twodimensions')
 
 	while start:
 
