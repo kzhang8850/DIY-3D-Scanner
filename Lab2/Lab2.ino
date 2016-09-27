@@ -66,6 +66,7 @@ void capture2d(){
     Serial.println(String(dist) + ", " + phi);
   }
   phi = phi_lower;
+  tilt.write(theta_lower);
   pan.write(phi);
 }
 
