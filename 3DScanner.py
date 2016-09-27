@@ -7,6 +7,8 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import pyplot as plt
 import time
 import sys, select, os
+import csv
+
 
 def StartUp():
 	"""
@@ -52,7 +54,7 @@ def ReadArduino(ser):
 	return None
 
 
-def Spherical2Cartesian(r, theta, phi):
+def Spherical2Cartesian(r, phi, theta):
 	"""
 	Converts from Spherical Coordinates to Cartesian Coordinates
 	Assumes phi and theta are in degrees
@@ -107,28 +109,27 @@ def Update3DPlot(graph, x,y,z, xarray, yarray, zarray):
 	Updates the 3D plot based on the continual readings from Arduino.
 	"""
 	if len(xarray) < 180*180:
-		xarray.append(x)
+		xarray.append(x*100)
 	else:
 		xarray = xarray[1:]
-		xarray.append(x)
+		xarray.append(x*100)
 
 	if len(yarray) < 180*180:
-		yarray.append(y)
+		yarray.append(y*100)
 	else:
 		yarray = yarray[1:]
-		yarray.append(y)
+		yarray.append(y*100)
 
 	if len(zarray) < 180*180:
-		zarray.append(z)
+		zarray.append(z*100)
 	else:
 		zarray = zarray[1:]
-		zarray.append(z)
+		zarray.append(z*100)
 
- 	if len(xarray) % 180 == 0:
-		graph.scatter(xarray, yarray, zarray, c='g', marker='o')
 
-		plt.draw()
-		plt.pause(.01)
+	return xarray, yarray, zarray
+
+
 
 
 def Plot2DCoordinates():
@@ -158,12 +159,7 @@ def Update2DPlot(x, y, xarray, yarray):
 		yarray = yarray[1:]
 		yarray.append(y)	
 
-	if len(xarray) % 180 == 0:	
-
-		plt.scatter(xarray, yarray, c='g', alpha=.5)
-
-		plt.draw()
-		plt.pause(.01)
+	return xarray, yarray
 
 
 
@@ -183,11 +179,15 @@ if __name__ == "__main__":
 	xarray = []
 	yarray = []
 	zarray = []
+	stop_counter = 0
+	start = True
 
 	ser = StartUp()
 	print ser
+	time.sleep(2)
+	ser.write('start')
 
-	while True:
+	while start:
 
 		if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
 			break		
@@ -198,11 +198,38 @@ if __name__ == "__main__":
 
 			if dim == "3d":
 				coordinates = Spherical2Cartesian(datapoint[0], datapoint[1], datapoint[2])
-				Update3DPlot(graph, coordinates[0], coordinates[1], coordinates[2], xarray, yarray, zarray)
+				xarray, yarray, zarray = Update3DPlot(graph, coordinates[0], coordinates[1], coordinates[2], xarray, yarray, zarray)
 
 			elif dim == '2d':	
 				coordinates = Polar2Cartesian(datapoint[0], datapoint[1])
-				Update2DPlot(coordinates[0], coordinates[1], xarray, yarray)
+				xarray, yarray = Update2DPlot(coordinates[0], coordinates[1], xarray, yarray)
+
+		else:
+			stop_counter += 1
+			if stop_counter > 10:
+				start = False
+
+
+	if dim == "3d":
+
+		ofile  = open('ttest.csv', "wb")
+		writer = csv.writer(ofile, delimiter='	', quotechar='"', quoting=csv.QUOTE_ALL)
+
+		writer.writerow(xarray)
+		writer.writerow(yarray)
+		writer.writerow(zarray)
+
+		ofile.close()
+		graph.scatter(xarray, yarray, zarray, c='g', marker='o')
+
+		plt.show(block=True)	
+
+	if dim == "2d":
+		plt.scatter(xarray, yarray, c='g', alpha=.5)
+
+		plt.show(block=True)
+
+
 	print ser.isOpen()
 	ser.close()
 	print ser.isOpen()

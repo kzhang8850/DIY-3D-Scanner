@@ -5,13 +5,13 @@
 #include <Servo.h>
 
 const int analogInPin = A0;
-int delta = 10;
+int delta = 1;
 Servo pan;
 Servo tilt;
 int theta_lower = 40;
 int theta_upper = 130;
 int phi_lower = 30;
-int phi_upper = 140;
+int phi_upper = 110;
 int theta;
 int phi;
 double dist = 0;
