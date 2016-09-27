@@ -5,38 +5,53 @@
 #include <Servo.h>
 
 const int analogInPin = A0;
+int delta = 10;
 Servo pan;
 Servo tilt;
-int theta = 0;
-int phi = 0;
+int theta_lower = 40;
+int theta_upper = 130;
+int phi_lower = 30;
+int phi_upper = 140;
+int theta;
+int phi;
 double dist = 0;
-int sensorValue = 0;
+int sensorValue = A0;
 String input = "";
 volatile bool start = false;
 volatile bool started = false;
 void(* resetFunc)(void) = 0;
 
 void setup() {
+  pan.attach(5);
+  tilt.attach(6);
+  theta = theta_lower;
+  phi = phi_lower;
+  pan.write(phi);
+  tilt.write(theta);
   Serial.begin(9600);
 }
 
 void loop() {
   if(start){
-    if(theta > 170){
-      theta = 0;
-      phi++;
+    if(theta > theta_upper){
+      theta = theta_lower;
+      phi = phi + delta;
+      tilt.write(theta);
+      pan.write(phi);
+      delay(250);
     }
-    if(phi > 170){
-      theta = 0;
-      phi = 0;
+    if(phi > phi_upper){
+      theta = theta_lower;
+      phi = phi_lower;
+      pan.write(phi);
       start = false;
     }
-    delay(15);
+    delay(100);
     sensorValue = analogRead(analogInPin);
     dist = 642.17*pow(sensorValue, -1.295);
+    tilt.write(theta);
     Serial.println(String(dist) + ", " + theta + ", " + phi);
-    delay(10);
-    theta++;
+    theta = theta + delta;
   }
 }
 
