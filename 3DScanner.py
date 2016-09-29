@@ -16,7 +16,7 @@ def StartUp():
 	"""
 
 
-	ser = serial.Serial('/dev/cu.usbmodem1411', 9600, timeout=1)
+	ser = serial.Serial('/dev/cu.usbmodem1421', 9600, timeout=1)
 	ser.close()
 	time.sleep(1)
 	ser.open()
@@ -169,11 +169,51 @@ if __name__ == "__main__":
 	print "Doing the Arduino Thing."
 	dim = raw_input('We doing 2D or 3D?\n\n')
 
-
 	if dim == "3d":
 		graph = Plot3DCoordinates()
 	elif dim == '2d':
 		Plot2DCoordinates()	
+
+
+	if dim == "a":
+		csv.field_size_limit(sys.maxsize)
+
+		ifile = open('ttest.csv', 'rb')
+		reader = csv.reader(ifile)
+		temp = []
+		for row in reader:
+			temp.append(row)
+		xarray = temp[0]
+		yarray = temp[1]
+		zarray = temp[2]
+
+		xarray = xarray[0].split('\t')
+		yarray = yarray[0].split('\t')
+		zarray = zarray[0].split('\t')
+		print len(xarray)
+		print len(yarray)
+		print len(zarray)
+
+		xarray = [float(item[1:-1]) for item in xarray]
+		yarray = [float(item[1:-1]) for item in yarray]
+		zarray = [float(item[1:-1]) for item in zarray]
+		print xarray[-1]
+		print yarray[-1]
+		print zarray[-1]
+
+		graph = Plot3DCoordinates()
+		plt.ion()
+
+
+		graph.scatter(xarray, yarray, zarray, c='g', marker='o')
+		plt.pause(.0001)
+
+		plt.show(block=True)	
+
+		ifile.close()
+
+		sys.exit()
+
 
 
 	xarray = []
@@ -185,7 +225,7 @@ if __name__ == "__main__":
 	ser = StartUp()
 	print ser
 	time.sleep(2)
-	ser.write('twodimensions')
+	ser.write('start')
 
 	while start:
 
@@ -212,14 +252,15 @@ if __name__ == "__main__":
 
 	if dim == "3d":
 
-		ofile  = open('ttest.csv', "wb")
-		writer = csv.writer(ofile, delimiter='	', quotechar='"', quoting=csv.QUOTE_ALL)
+		file = open('test2.csv','wb')
+
+		writer = csv.writer(file, delimiter=',')
 
 		writer.writerow(xarray)
 		writer.writerow(yarray)
 		writer.writerow(zarray)
 
-		ofile.close()
+		file.close()
 		graph.scatter(xarray, yarray, zarray, c='g', marker='o')
 
 		plt.show(block=True)	

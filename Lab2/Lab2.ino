@@ -6,15 +6,15 @@
 #include <Servo.h>
 
 // The upper and lower bounds for pan
-#define phiLower 30
-#define phiUpper 140
+#define thetaLower 40
+#define thetaUpper 100
 
 // The upper and lower bounds for tilt
-#define thetaLower 40
-#define thetaUpper 130
+#define phiLower 40
+#define phiUpper 100
 
-// The change in theta/phi
-#define delta 10
+// The change in phi/theta
+#define delta 1
 
 // The pins for the sensor and servos
 #define analogInPin A0
@@ -27,8 +27,8 @@ Servo pan;
 Servo tilt;
 
 // Declaring and initializing the angles to their lowest values
-int phi = phiLower; // pan
-int theta = thetaLower; // tilt
+int theta = thetaLower; // pan
+int phi = phiLower; // tilt
 
 // The value to hold the calibrated distance
 double dist = 0;
@@ -50,8 +50,8 @@ void setup() {
   tilt.attach(tiltPin);
 
   // Setting the servos to their lowest values
-  pan.write(phi);
-  tilt.write(theta);
+  pan.write(theta);
+  tilt.write(phi);
 
   // Initializing serial communication
   Serial.begin(9600);
@@ -68,27 +68,27 @@ void loop() {
   */
   if(start){
     // If start is true, it the scanning begins
-    if(theta > thetaUpper){
+    if(phi > phiUpper){
       /*
         If the tilt angle is greater than the maximum angle, it resets
         to lower bound and increases the pan angle by delta
       */
-      theta = thetaLower;
-      phi = phi + delta;
-      tilt.write(theta);
-      pan.write(phi);
+      phi = phiLower;
+      theta = theta + delta;
+      tilt.write(phi);
+      pan.write(theta);
       // Delays to allow for the tilt servo to move to the initial position
       delay(250);
     }
-    if(phi > phiUpper){
+    if(theta > thetaUpper){
       /*
         If the pan angle is greater than the maximum angle, the scan
-        is over so it resets phi and theta to their lower bounds and
+        is over so it resets theta and phi to their lower bounds and
         sets start/started to false
       */
-      theta = thetaLower;
       phi = phiLower;
-      pan.write(phi);
+      theta = thetaLower;
+      pan.write(theta);
       start = false;
       started = false;
     }
@@ -100,41 +100,41 @@ void loop() {
     dist = 642.17*pow(analogRead(analogInPin), -1.295);
 
     // Returns the calculated distance, the tilt angle, and the pan angle
-    Serial.println(String(dist) + ", " + theta + ", " + phi);
+    Serial.println(String(dist) + ", " + phi + ", " + theta);
 
-    // Tilts to the next position and adds the change in angle to theta
-    tilt.write(theta);
-    theta = theta + delta;
+    // Tilts to the next position and adds the change in angle to phi
+    tilt.write(phi);
+    phi = phi + delta;
   }
 }
 
 
 void capture2d(){
   /*
-    This function captures a 2d scan along the pan axis, with theta
+    This function captures a 2d scan along the pan axis, with phi
     being halfway between the maximum and minimum. This function is
     outside of the main loop because it is relatively fast compared
     to a 3d scan and does not warrant a need to pause or reset
   */
 
   // Sets the tilt to the midpoint between the upper and lower bounds
-  tilt.write((thetaUpper + thetaLower)/2);
+  tilt.write((phiUpper + phiLower)/2);
 
-  for(phi = phiLower; phi < phiUpper; phi = phi + delta){
+  for(theta = thetaLower; theta < thetaUpper; theta = theta + delta){
     /*
-      This for loop increments phi by delta and moves the
+      This for loop increments theta by delta and moves the
       pan servo. At each point, the distance is calculated
       and sent to the computer over serial
     */
-    pan.write(phi);
+    pan.write(theta);
     delay(100);
     dist = 642.17*pow(analogRead(analogInPin), -1.295);
-    Serial.println(String(dist) + ", " + phi);
+    Serial.println(String(dist) + ", " + theta);
   }
   // After the 2d scan, the pan and tilt servos are reset to their lower bounds
-  phi = phiLower;
-  tilt.write(thetaLower);
-  pan.write(phi);
+  theta = thetaLower;
+  tilt.write(phiLower);
+  pan.write(theta);
 }
 
 
