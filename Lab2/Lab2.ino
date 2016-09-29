@@ -6,15 +6,15 @@
 #include <Servo.h>
 
 // The upper and lower bounds for pan
-#define thetaLower 40
-#define thetaUpper 100
+#define thetaLower 60
+#define thetaUpper 120
 
 // The upper and lower bounds for tilt
-#define phiLower 40
-#define phiUpper 100
+#define phiLower 50
+#define phiUpper 110
 
 // The change in phi/theta
-#define delta 1
+#define delta 10
 
 // The pins for the sensor and servos
 #define analogInPin A0
@@ -97,7 +97,7 @@ void loop() {
     delay(100);
 
     // This is the calibration function
-    dist = 642.17*pow(analogRead(analogInPin), -1.295);
+    dist = 64217*pow(analogRead(analogInPin), -1.295);
 
     // Returns the calculated distance, the tilt angle, and the pan angle
     Serial.println(String(dist) + ", " + phi + ", " + theta);
@@ -117,8 +117,8 @@ void capture2d(){
     to a 3d scan and does not warrant a need to pause or reset
   */
 
-  // Sets the tilt to the midpoint between the upper and lower bounds
-  tilt.write((phiUpper + phiLower)/2);
+  // Sets the tilt to the midpoint
+  tilt.write(100);
 
   for(theta = thetaLower; theta < thetaUpper; theta = theta + delta){
     /*
@@ -128,7 +128,7 @@ void capture2d(){
     */
     pan.write(theta);
     delay(100);
-    dist = 642.17*pow(analogRead(analogInPin), -1.295);
+    dist = 64217*pow(analogRead(analogInPin), -1.295);
     Serial.println(String(dist) + ", " + theta);
   }
   // After the 2d scan, the pan and tilt servos are reset to their lower bounds
